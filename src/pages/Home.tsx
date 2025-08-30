@@ -4,10 +4,8 @@ import {
   Typography,
   Card,
   CardContent,
-  CardActions,
   Button,
-  Paper,
-  Container,
+  Paper
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -59,7 +57,7 @@ const Home: React.FC = () => {
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
           Cassava Disease Classifier
         </Typography>
-        <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3, opacity: 0.9 }}>
+        <Typography variant="body1" component="h2" gutterBottom sx={{ mb: 3, opacity: 0.9 }}>
           AI-Powered Disease Detection & Farmer Advisory System
         </Typography>
         <Typography variant="body1" sx={{ mb: 4, maxWidth: 600, mx: 'auto', opacity: 0.8 }}>
