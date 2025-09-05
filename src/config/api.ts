@@ -40,7 +40,7 @@ export const getApiConfig = () => {
     ...API_CONFIG,
     // Override base URL for production if needed
     BASE_URL: isProduction 
-      ? (process.env.REACT_APP_API_URL || 'http://34.199.70.74:8000')
+      ? (process.env.REACT_APP_API_URL || 'http://ec2-34-199-70-74.compute-1.amazonaws.com:8000')
       : API_CONFIG.BASE_URL,
     
     // Enable debug logging in development
