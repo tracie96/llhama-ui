@@ -21,10 +21,6 @@ export const API_CONFIG = {
   // Supported languages (can be fetched from API)
   SUPPORTED_LANGUAGES: [
     'English',
-    'Spanish',
-    'French',
-    'Portuguese',
-    'Swahili',
     'Yoruba',
     'Igbo',
     'Hausa',
