@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for the API - can be overridden by environment variables
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://ec2-34-199-70-74.compute-1.amazonaws.com:8000',
+  BASE_URL: process.env.REACT_APP_API_URL || 'https://api.dataverseafrica.org',
   
   // Request timeout in milliseconds
   TIMEOUT: 30000,
@@ -40,7 +40,7 @@ export const getApiConfig = () => {
     ...API_CONFIG,
     // Override base URL for production if needed
     BASE_URL: isProduction 
-      ? (process.env.REACT_APP_API_URL || 'http://ec2-34-199-70-74.compute-1.amazonaws.com:8000')
+      ? (process.env.REACT_APP_API_URL || 'https://api.dataverseafrica.org')
       : API_CONFIG.BASE_URL,
     
     // Enable debug logging in development

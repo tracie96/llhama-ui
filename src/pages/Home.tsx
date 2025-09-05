@@ -51,7 +51,6 @@ const Home: React.FC = () => {
     <Box>
       {/* Hero Section */}
       <Paper
-        elevation={3}
         sx={{
           p: 6,
           mb: 6,

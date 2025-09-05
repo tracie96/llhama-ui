@@ -23,7 +23,16 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <AppBar position="static" elevation={2}>
+    <AppBar 
+      position="static" 
+      elevation={2}
+      sx={{
+        borderRadius: 0,
+        '& .MuiToolbar-root': {
+          borderRadius: 0,
+        }
+      }}
+    >
       <Container maxWidth="lg">
         <Toolbar disableGutters>
           <AgricultureIcon sx={{ mr: 2, fontSize: 32 }} />
@@ -52,8 +61,10 @@ const Header: React.FC = () => {
                   textTransform: 'none',
                   fontWeight: location.pathname === item.path ? 600 : 400,
                   backgroundColor: location.pathname === item.path ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  borderRadius: 0,
                   '&:hover': {
                     backgroundColor: 'rgba(255,255,255,0.2)',
+                    borderRadius: 0,
                   },
                 }}
               >
