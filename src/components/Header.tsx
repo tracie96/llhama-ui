@@ -92,10 +92,11 @@ const Header: React.FC = () => {
 
   return (
     <AppBar 
-      position="static" 
+      position="fixed" 
       elevation={2}
       sx={{
         borderRadius: 0,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
         '& .MuiToolbar-root': {
           borderRadius: 0,
         }

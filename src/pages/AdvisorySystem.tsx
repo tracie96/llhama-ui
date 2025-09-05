@@ -5,30 +5,20 @@ import {
   Paper,
   TextField,
   Button,
-  CardContent,
-  CardActions,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   CircularProgress,
-  Card,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
 } from '@mui/material';
 import {
   Send,
-  Psychology,
   Agriculture,
   Science,
-  QuestionAnswer,
   CheckCircle,
   Info,
-  Warning,
+  Mic,
+  Stop,
+  VolumeUp,
+  PlayArrow,
+  Pause,
 } from '@mui/icons-material';
 import { apiService, ChatMessage } from '../services/api';
 import { API_CONFIG } from '../config/api';
@@ -38,14 +28,9 @@ interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  audioUrl?: string;
 }
 
-interface AdvisoryCategory {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  topics: string[];
-}
 
 const AdvisorySystem: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -58,49 +43,17 @@ const AdvisorySystem: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
+  const [selectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
   const [error, setError] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
-  const advisoryCategories: AdvisoryCategory[] = [
-    {
-      title: 'Disease Management',
-      description: 'Learn about preventing and treating common cassava diseases',
-      icon: <Warning sx={{ fontSize: 40, color: 'error.main' }} />,
-      topics: [
-        'Cassava Mosaic Disease prevention',
-        'Brown Streak Disease control',
-        'Bacterial Blight treatment',
-        'Integrated pest management',
-        'Disease-resistant varieties'
-      ]
-    },
-    {
-      title: 'Best Practices',
-      description: 'Essential farming techniques for optimal cassava production',
-      icon: <Agriculture sx={{ fontSize: 40, color: 'primary.main' }} />,
-      topics: [
-        'Soil preparation and fertility',
-        'Planting techniques and spacing',
-        'Water management',
-        'Harvesting and post-harvest',
-        'Crop rotation strategies'
-      ]
-    },
-    {
-      title: 'Variety Selection',
-      description: 'Choose the right cassava varieties for your conditions',
-      icon: <Science sx={{ fontSize: 40, color: 'secondary.main' }} />,
-      topics: [
-        'High-yielding varieties',
-        'Disease-resistant cultivars',
-        'Climate-adapted varieties',
-        'Local variety recommendations',
-        'Seed quality assessment'
-      ]
-    }
-  ];
 
   // Fallback responses for when API is unavailable
   const fallbackResponses = [
@@ -112,11 +65,22 @@ const AdvisorySystem: React.FC = () => {
   ];
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Small delay to ensure DOM is updated before scrolling
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
   const handleSendMessage = async () => {
@@ -186,50 +150,250 @@ const AdvisorySystem: React.FC = () => {
     }
   };
 
-  const handleQuickQuestion = (topic: string) => {
-    setInputText(topic);
-  };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
+      event.stopPropagation();
       handleSendMessage();
     }
   };
 
-  return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
-        AI Farming Advisory System
-      </Typography>
-      
-      <Typography variant="body1" sx={{ textAlign: 'center', mb: 4, maxWidth: 800, mx: 'auto' }}>
-        Get personalized advice on cassava farming, disease management, and best practices. 
-        Ask me anything about cassava cultivation!
-      </Typography>
+  // Voice recording functions
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 4 }}>
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        processVoiceMessage(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setError(null);
+    } catch (error: unknown) {
+      console.error('Error starting recording:', error);
+      setError('Unable to access microphone. Please check permissions.');
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const processVoiceMessage = async (audioBlob: Blob) => {
+    setIsProcessingVoice(true);
+    setError(null);
+
+    try {
+      // Create a File object from the Blob
+      const audioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
+
+      // Process voice message with context
+      const voiceResponse = await apiService.processVoiceMessage(
+        audioFile,
+        selectedLanguage,
+        'cassava farming advisory'
+      );
+
+      // Add the transcribed text to input
+      setInputText(voiceResponse.transcription);
+
+      // Create audio URL for playback
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Add user message with audio
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: voiceResponse.transcription,
+        isUser: true,
+        timestamp: new Date(),
+        audioUrl: audioUrl,
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+
+      // Add user message to conversation history
+      const newUserChatMessage: ChatMessage = {
+        role: 'user',
+        content: voiceResponse.transcription,
+      };
+      const updatedHistory = [...conversationHistory, newUserChatMessage];
+      setConversationHistory(updatedHistory);
+
+      // Process AI response
+      setIsTyping(true);
+      try {
+        const response = await apiService.getResponseWithContext(
+          voiceResponse.transcription,
+          selectedLanguage
+        );
+
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.response,
+          isUser: false,
+          timestamp: new Date(),
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Add AI response to conversation history
+        const newAiChatMessage: ChatMessage = {
+          role: 'assistant',
+          content: response.response,
+        };
+        setConversationHistory(prev => [...prev, newAiChatMessage]);
+
+      } catch (error: unknown) {
+        console.error('Chat API error:', error);
+        
+        // Fallback to mock response if API fails
+        const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: fallbackResponse,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        setError('Using offline mode. Some features may be limited.');
+      } finally {
+        setIsTyping(false);
+      }
+
+    } catch (error: unknown) {
+      console.error('Voice processing error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to process voice message. Please try again.');
+    } finally {
+      setIsProcessingVoice(false);
+    }
+  };
+
+  const playAudio = (messageId: string, audioUrl: string) => {
+    if (!audioRefs.current[messageId]) {
+      audioRefs.current[messageId] = new Audio(audioUrl);
+    }
+
+    const audio = audioRefs.current[messageId];
+    
+    if (isPlayingAudio === messageId) {
+      audio.pause();
+      setIsPlayingAudio(null);
+    } else {
+      // Stop any currently playing audio
+      Object.values(audioRefs.current).forEach(a => a.pause());
+      setIsPlayingAudio(messageId);
+      audio.play();
+      
+      audio.onended = () => {
+        setIsPlayingAudio(null);
+      };
+    }
+  };
+
+  const speakText = async (text: string) => {
+    if (!text.trim()) return;
+
+    try {
+      const ttsResponse = await apiService.textToSpeech(text, selectedLanguage);
+      
+      // Convert base64 audio to blob and play
+      const audioData = atob(ttsResponse.audio_data);
+      const audioArray = new Uint8Array(audioData.length);
+      for (let i = 0; i < audioData.length; i++) {
+        audioArray[i] = audioData.charCodeAt(i);
+      }
+      
+      const audioBlob = new Blob([audioArray], { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Create a temporary audio element and play
+      const audio = new Audio(audioUrl);
+      audio.play();
+      
+    } catch (error: unknown) {
+      console.error('TTS error:', error);
+      setError('Failed to generate speech. Please try again.');
+    }
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <style>
+        {`
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+          }
+        `}
+      </style>
+      
+      {/* Fixed Navbar */}
+      
+
+      {/* Main Content */}
+      <Box sx={{ 
+        mt: { xs: '70px', sm: '80px' }, 
+        flex: 1, 
+        p: { xs: 1, sm: 2, md: 3 },
+        pb: { xs: 2, sm: 3 }
+      }}>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            textAlign: 'center', 
+            mb: { xs: 2, sm: 4 }, 
+            maxWidth: 800, 
+            mx: 'auto',
+            px: { xs: 1, sm: 0 },
+            fontSize: { xs: '0.9rem', sm: '1rem' }
+          }}
+        >
+          Get personalized advice on cassava farming, disease management, and best practices. 
+          Ask me anything about cassava cultivation!
+        </Typography>
+
+        <Box sx={{ 
+          maxWidth: '1000px', 
+          mx: 'auto', 
+          height: { xs: 'calc(100vh - 140px)', sm: 'calc(100vh - 200px)' }
+        }}>
           {/* Chat Interface */}
-          <Paper elevation={3} sx={{ p: 3, height: 600, display: 'flex', flexDirection: 'column' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Psychology sx={{ fontSize: 32, color: 'primary.main', mr: 2 }} />
-              <Typography variant="h5" sx={{ flexGrow: 1 }}>
+          <Paper elevation={3} sx={{ 
+            p: { xs: 2, sm: 3 }, 
+            height: '100%', 
+            display: 'flex', 
+            flexDirection: 'column',
+            borderRadius: { xs: 2, sm: 3 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3 } }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  flexGrow: 1, 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                }}
+              >
                 Chat with AI Advisor
               </Typography>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Language</InputLabel>
-                <Select
-                  value={selectedLanguage}
-                  label="Language"
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
-                >
-                  {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
-                    <MenuItem key={language} value={language}>
-                      {language}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
             </Box>
 
             {error && (
@@ -239,7 +403,14 @@ const AdvisorySystem: React.FC = () => {
             )}
 
             {/* Messages Area */}
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
+            <Box sx={{ 
+              flexGrow: 1, 
+              overflowY: 'auto', 
+              mb: { xs: 2, sm: 3 }, 
+              p: { xs: 1.5, sm: 2 }, 
+              backgroundColor: 'grey.50', 
+              borderRadius: 2 
+            }}>
               {messages.map((message) => (
                 <Box
                   key={message.id}
@@ -251,18 +422,96 @@ const AdvisorySystem: React.FC = () => {
                 >
                   <Box
                     sx={{
-                      maxWidth: '70%',
+                      maxWidth: { xs: '85%', sm: '70%' },
                       backgroundColor: message.isUser ? 'primary.main' : 'white',
                       color: message.isUser ? 'white' : 'text.primary',
-                      p: 2,
+                      p: { xs: 1.5, sm: 2 },
                       borderRadius: 2,
                       boxShadow: 1,
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
                     }}
                   >
-                    <Typography variant="body1">{message.text}</Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.7, mt: 1, display: 'block' }}>
-                      {message.timestamp.toLocaleTimeString()}
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {message.text}
                     </Typography>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between', 
+                      mt: 1,
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      gap: { xs: 0.5, sm: 0 }
+                    }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          opacity: 0.7,
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                        }}
+                      >
+                        {message.timestamp.toLocaleTimeString()}
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        gap: { xs: 0.5, sm: 1 }, 
+                        alignItems: 'center',
+                        flexWrap: 'wrap'
+                      }}>
+                        {message.audioUrl && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={isPlayingAudio === message.id ? <Pause /> : <PlayArrow />}
+                            onClick={() => playAudio(message.id, message.audioUrl!)}
+                            sx={{ 
+                              minWidth: 'auto', 
+                              px: { xs: 0.5, sm: 1 },
+                              py: { xs: 0.5, sm: 0.5 },
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                              minHeight: { xs: 28, sm: 32 },
+                              color: message.isUser ? 'white' : 'primary.main',
+                              borderColor: message.isUser ? 'white' : 'primary.main',
+                              '&:hover': {
+                                borderColor: message.isUser ? 'white' : 'primary.main',
+                                backgroundColor: message.isUser ? 'rgba(255,255,255,0.1)' : 'primary.50',
+                              }
+                            }}
+                          >
+                            {isPlayingAudio === message.id ? 'Pause' : 'Play'}
+                          </Button>
+                        )}
+                        {!message.isUser && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VolumeUp />}
+                            onClick={() => speakText(message.text)}
+                            sx={{ 
+                              minWidth: 'auto', 
+                              px: { xs: 0.5, sm: 1 },
+                              py: { xs: 0.5, sm: 0.5 },
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                              minHeight: { xs: 28, sm: 32 },
+                              color: 'primary.main',
+                              borderColor: 'primary.main',
+                              '&:hover': {
+                                borderColor: 'primary.main',
+                                backgroundColor: 'primary.50',
+                              }
+                            }}
+                          >
+                            Speak
+                          </Button>
+                        )}
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
               ))}
@@ -282,7 +531,19 @@ const AdvisorySystem: React.FC = () => {
             </Box>
 
             {/* Input Area */}
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box 
+              component="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              sx={{ 
+                display: 'flex', 
+                gap: { xs: 0.5, sm: 1 }, 
+                alignItems: 'flex-end',
+                flexDirection: { xs: 'column', sm: 'row' }
+              }}
+            >
               <TextField
                 fullWidth
                 multiline
@@ -293,122 +554,217 @@ const AdvisorySystem: React.FC = () => {
                 placeholder="Ask about cassava farming, diseases, or best practices..."
                 variant="outlined"
                 size="small"
+                disabled={isRecording || isProcessingVoice}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    minHeight: { xs: 40, sm: 40 }
+                  }
+                }}
               />
-              <Button
-                variant="contained"
-                onClick={handleSendMessage}
-                disabled={!inputText.trim() || isTyping}
-                sx={{ minWidth: 100 }}
-              >
-                <Send />
-              </Button>
-            </Box>
-          </Paper>
-
-          {/* Quick Topics & Categories */}
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Quick Questions
-            </Typography>
-            <List dense>
-              {[
-                'How to prevent cassava mosaic disease?',
-                'Best soil preparation for cassava?',
-                'When to harvest cassava?',
-                'How to control pests naturally?',
-                'Which varieties are disease-resistant?'
-              ].map((question, index) => (
-                <ListItem key={index} onClick={() => handleQuickQuestion(question)} sx={{ cursor: 'pointer' }}>
-                  <ListItemIcon>
-                    <QuestionAnswer sx={{ fontSize: 20, color: 'primary.main' }} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={question} 
-                    primaryTypographyProps={{ variant: 'body2' }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-
-          {/* Advisory Categories */}
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Advisory Categories
-            </Typography>
-            {advisoryCategories.map((category, index) => (
-              <Card key={index} sx={{ mb: 2 }}>
-                <CardContent sx={{ pb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    {category.icon}
-                    <Typography variant="h6" sx={{ ml: 1 }}>
-                      {category.title}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {category.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {category.topics.slice(0, 3).map((topic, topicIndex) => (
-                      <Chip
-                        key={topicIndex}
-                        label={topic}
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleQuickQuestion(topic)}
-                      />
-                    ))}
-                  </Box>
-                </CardContent>
-                <CardActions>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: { xs: 0.5, sm: 1 },
+                width: { xs: '100%', sm: 'auto' },
+                justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+              }}>
+                {!isRecording ? (
                   <Button
-                    size="small"
-                    onClick={() => handleQuickQuestion(`Tell me more about ${category.title.toLowerCase()}`)}
+                    variant="outlined"
+                    onClick={startVoiceRecording}
+                    disabled={isTyping || isProcessingVoice}
+                    sx={{ 
+                      minWidth: { xs: 44, sm: 50 }, 
+                      height: { xs: 44, sm: 40 },
+                      minHeight: { xs: 44, sm: 40 },
+                      borderColor: isProcessingVoice ? 'grey.300' : 'primary.main',
+                      color: isProcessingVoice ? 'grey.500' : 'primary.main',
+                      '&:hover': {
+                        backgroundColor: isProcessingVoice ? 'transparent' : 'primary.50',
+                      }
+                    }}
+                    title="Start voice recording"
                   >
-                    Learn More
+                    {isProcessingVoice ? <CircularProgress size={20} /> : <Mic />}
                   </Button>
-                </CardActions>
-              </Card>
-            ))}
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={stopVoiceRecording}
+                    color="error"
+                    sx={{ 
+                      minWidth: { xs: 44, sm: 50 }, 
+                      height: { xs: 44, sm: 40 },
+                      minHeight: { xs: 44, sm: 40 }
+                    }}
+                    title="Stop voice recording"
+                  >
+                    <Stop />
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  disabled={!inputText.trim() || isTyping || isRecording || isProcessingVoice}
+                  sx={{ 
+                    minWidth: { xs: 44, sm: 50 }, 
+                    height: { xs: 44, sm: 40 },
+                    minHeight: { xs: 44, sm: 40 }
+                  }}
+                  title="Send message"
+                >
+                  <Send />
+                </Button>
+              </Box>
+            </Box>
+            
+            {/* Voice Recording Status */}
+            {isRecording && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1, 
+                mt: 1, 
+                p: { xs: 0.75, sm: 1 }, 
+                backgroundColor: 'error.50', 
+                borderRadius: 1 
+              }}>
+                <Box sx={{ 
+                  width: 8, 
+                  height: 8, 
+                  backgroundColor: 'error.main', 
+                  borderRadius: '50%', 
+                  animation: 'pulse 1.5s infinite' 
+                }} />
+                <Typography 
+                  variant="body2" 
+                  color="error.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                >
+                  Recording... Click stop when finished
+                </Typography>
+              </Box>
+            )}
+            
+            {isProcessingVoice && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1, 
+                mt: 1, 
+                p: { xs: 0.75, sm: 1 }, 
+                backgroundColor: 'info.50', 
+                borderRadius: 1 
+              }}>
+                <CircularProgress size={16} />
+                <Typography 
+                  variant="body2" 
+                  color="info.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                >
+                  Processing voice message...
+                </Typography>
+              </Box>
+            )}
           </Paper>
         </Box>
 
-      {/* Tips Section */}
-      <Paper elevation={2} sx={{ p: 4, mt: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 3, textAlign: 'center' }}>
-          Getting the Most from Your AI Advisor
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Info sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-            <Typography variant="h6" gutterBottom>Be Specific</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Ask detailed questions about your specific situation for better advice
-            </Typography>
+        {/* Tips Section */}
+        <Paper elevation={2} sx={{ 
+          p: { xs: 2, sm: 3 }, 
+          mt: { xs: 2, sm: 3 },
+          borderRadius: { xs: 2, sm: 3 }
+        }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              mb: { xs: 1.5, sm: 2 }, 
+              textAlign: 'center',
+              fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            }}
+          >
+            Getting the Most from Your AI Advisor
+          </Typography>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, 
+            gap: { xs: 1.5, sm: 2 }
+          }}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Info sx={{ fontSize: { xs: 24, sm: 32 }, color: 'info.main', mb: 1 }} />
+              <Typography 
+                variant="subtitle1" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+              >
+                Be Specific
+              </Typography>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}
+              >
+                Ask detailed questions about your specific situation for better advice
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Agriculture sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main', mb: 1 }} />
+              <Typography 
+                variant="subtitle1" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+              >
+                Local Context
+              </Typography>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}
+              >
+                Mention your location and climate for region-specific recommendations
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <CheckCircle sx={{ fontSize: { xs: 24, sm: 32 }, color: 'success.main', mb: 1 }} />
+              <Typography 
+                variant="subtitle1" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+              >
+                Follow Up
+              </Typography>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}
+              >
+                Ask follow-up questions to clarify and get more detailed information
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'center' }}>
+              <Science sx={{ fontSize: { xs: 24, sm: 32 }, color: 'secondary.main', mb: 1 }} />
+              <Typography 
+                variant="subtitle1" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+              >
+                Best Practices
+              </Typography>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}
+              >
+                Request step-by-step guidance for implementing recommendations
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ textAlign: 'center' }}>
-            <Agriculture sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-            <Typography variant="h6" gutterBottom>Local Context</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Mention your location and climate for region-specific recommendations
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: 'center' }}>
-            <CheckCircle sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-            <Typography variant="h6" gutterBottom>Follow Up</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Ask follow-up questions to clarify and get more detailed information
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: 'center' }}>
-            <Science sx={{ fontSize: 40, color: 'secondary.main', mb: 1 }} />
-            <Typography variant="h6" gutterBottom>Best Practices</Typography>
-            <Typography variant="body2" color="text.secondary">
-              Request step-by-step guidance for implementing recommendations
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
+        </Paper>
+      </Box>
     </Box>
   );
 };

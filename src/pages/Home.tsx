@@ -54,6 +54,7 @@ const Home: React.FC = () => {
         sx={{
           p: 6,
           mb: 6,
+          position: 'fixed',
           background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
           color: 'white',
           textAlign: 'center',

@@ -238,7 +238,7 @@ function App() {
           }
         }}>
           <Header />
-          <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Container maxWidth="lg" sx={{ py: 4, pt: { xs: 10, sm: 12 } }}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/classifier" element={<DiseaseClassifier />} />
