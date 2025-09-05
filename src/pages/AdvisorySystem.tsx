@@ -523,7 +523,7 @@ const AdvisorySystem: React.FC = () => {
                             {isPlayingAudio === message.id ? 'Pause' : 'Play'}
                           </Button>
                         )}
-                        {!message.isUser && (
+                        {/* {!message.isUser && (
                           <Button
                             size="small"
                             variant="outlined"
@@ -546,7 +546,7 @@ const AdvisorySystem: React.FC = () => {
                           >
                             {isGeneratingSpeech ? 'Generating...' : 'Speak'}
                           </Button>
-                        )}
+                        )} */}
                       </Box>
                     </Box>
                   </Box>
