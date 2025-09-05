@@ -195,75 +195,109 @@ const DiseaseClassifier: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
       <Fade in timeout={800}>
     <Box>
           {/* Hero Section */}
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Stack direction="row" justifyContent="center" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-              <Science sx={{ fontSize: 48, color: 'primary.main' }} />
-              <Typography variant="h3" component="h1" sx={{ 
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: '-0.02em'
-              }}>
+          <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 6 } }}>
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              justifyContent="center" 
+              alignItems="center" 
+              spacing={{ xs: 1, sm: 2 }} 
+              sx={{ mb: { xs: 2, sm: 3 } }}
+            >
+              <Science sx={{ fontSize: { xs: 32, sm: 48 }, color: 'primary.main' }} />
+              <Typography 
+                variant="h3" 
+                component="h1" 
+                sx={{ 
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '-0.02em',
+                  fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' }
+                }}
+              >
                 AI Disease Classifier
-      </Typography>
-              <AutoAwesome sx={{ fontSize: 48, color: 'secondary.main' }} />
+              </Typography>
+              <AutoAwesome sx={{ fontSize: { xs: 32, sm: 48 }, color: 'secondary.main' }} />
             </Stack>
             
-            <Typography variant="h6" sx={{ 
-              color: 'text.secondary', 
-              maxWidth: 600, 
-              mx: 'auto',
-              mb: 4,
-              lineHeight: 1.6
-            }}>
-        Upload a clear image of your cassava leaves to detect diseases and receive personalized recommendations 
-        for treatment and management.
-      </Typography>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: 'text.secondary', 
+                maxWidth: { xs: '100%', sm: 600 }, 
+                mx: 'auto',
+                mb: { xs: 3, sm: 4 },
+                lineHeight: 1.6,
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                px: { xs: 2, sm: 0 }
+              }}
+            >
+              Upload a clear image of your cassava leaves to detect diseases and receive personalized recommendations 
+              for treatment and management.
+            </Typography>
 
             {/* Feature Pills */}
-            <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" sx={{ gap: 1 }}>
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              spacing={{ xs: 1, sm: 2 }} 
+              justifyContent="center" 
+              flexWrap="wrap" 
+              sx={{ gap: 1 }}
+            >
               <Chip 
                 icon={<Agriculture />} 
                 label="Agricultural AI" 
                 color="primary" 
                 variant="outlined"
-                sx={{ fontWeight: 500 }}
+                sx={{ 
+                  fontWeight: 500,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 32, sm: 36 }
+                }}
               />
               <Chip 
                 icon={<HealthAndSafety />} 
                 label="Disease Detection" 
                 color="success" 
                 variant="outlined"
-                sx={{ fontWeight: 500 }}
+                sx={{ 
+                  fontWeight: 500,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 32, sm: 36 }
+                }}
               />
               <Chip 
                 icon={<AutoAwesome />} 
                 label="Instant Results" 
                 color="secondary" 
                 variant="outlined"
-                sx={{ fontWeight: 500 }}
+                sx={{ 
+                  fontWeight: 500,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 32, sm: 36 }
+                }}
               />
             </Stack>
           </Box>
 
-          <Grid container spacing={4}>
+          <Grid container spacing={{ xs: 2, sm: 4 }}>
         {/* Image Upload Section */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Slide in timeout={1000} direction="right">
                 <Paper 
                   elevation={0} 
                   sx={{ 
-                    p: 4,
+                    p: { xs: 2, sm: 4 },
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
                     backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 3,
+                    borderRadius: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
                     '&::before': {
@@ -277,16 +311,24 @@ const DiseaseClassifier: React.FC = () => {
                     }
                   }}
                 >
-                  <Stack spacing={3}>
+                  <Stack spacing={{ xs: 2, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h5" sx={{ 
-                        fontWeight: 600, 
-                        mb: 1,
-                        color: 'text.primary'
-                      }}>
-              Upload Cassava Leaf Image
-            </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          fontWeight: 600, 
+                          mb: 1,
+                          color: 'text.primary',
+                          fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                        }}
+                      >
+                        Upload Cassava Leaf Image
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem' } }}
+                      >
                         Get instant AI-powered disease analysis
                       </Typography>
                     </Box>
@@ -317,34 +359,35 @@ const DiseaseClassifier: React.FC = () => {
               sx={{
                 border: '2px dashed',
                 borderColor: isDragActive ? 'primary.main' : 'grey.300',
-                        borderRadius: 3,
-                p: 4,
+                borderRadius: { xs: 2, sm: 3 },
+                p: { xs: 2, sm: 4 },
                 textAlign: 'center',
                 cursor: 'pointer',
-                        background: isDragActive 
-                          ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%)'
-                          : 'linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.05) 100%)',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        position: 'relative',
-                        overflow: 'hidden',
+                background: isDragActive 
+                  ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%)'
+                  : 'linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.05) 100%)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: { xs: 200, sm: 250 },
                 '&:hover': {
                   borderColor: 'primary.main',
-                          background: 'linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(76, 175, 80, 0.08) 100%)',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0px 8px 25px rgba(46, 125, 50, 0.15)',
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: 0,
-                          left: '-100%',
-                          width: '100%',
-                          height: '100%',
-                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
-                          transition: 'left 0.5s',
-                        },
-                        '&:hover::before': {
-                          left: '100%',
+                  background: 'linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(76, 175, 80, 0.08) 100%)',
+                  transform: { xs: 'none', sm: 'translateY(-2px)' },
+                  boxShadow: { xs: '0px 4px 12px rgba(46, 125, 50, 0.1)', sm: '0px 8px 25px rgba(46, 125, 50, 0.15)' },
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                  transition: 'left 0.5s',
+                },
+                '&:hover::before': {
+                  left: '100%',
                 },
               }}
             >
@@ -354,9 +397,9 @@ const DiseaseClassifier: React.FC = () => {
                 <Box>
                             <Box sx={{ 
                               position: 'relative',
-                              borderRadius: 3,
+                              borderRadius: { xs: 2, sm: 3 },
                               overflow: 'hidden',
-                              mb: 3,
+                              mb: { xs: 2, sm: 3 },
                               boxShadow: '0px 8px 32px rgba(0,0,0,0.12)',
                             }}>
                   <img
@@ -365,36 +408,42 @@ const DiseaseClassifier: React.FC = () => {
                     style={{
                       maxWidth: '100%',
                       maxHeight: 300,
-                                  width: '100%',
-                                  objectFit: 'cover',
-                                  display: 'block',
-                                }}
-                              />
-                              <Box sx={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                background: 'rgba(0,0,0,0.7)',
-                                borderRadius: 2,
-                                p: 1,
-                                color: 'white',
-                              }}>
-                                <CameraAlt sx={{ fontSize: 20 }} />
-                              </Box>
-                            </Box>
-                            <Stack direction="row" spacing={2} justifyContent="center">
+                      width: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                  <Box sx={{
+                    position: 'absolute',
+                    top: { xs: 4, sm: 8 },
+                    right: { xs: 4, sm: 8 },
+                    background: 'rgba(0,0,0,0.7)',
+                    borderRadius: { xs: 1, sm: 2 },
+                    p: { xs: 0.5, sm: 1 },
+                    color: 'white',
+                  }}>
+                    <CameraAlt sx={{ fontSize: { xs: 16, sm: 20 } }} />
+                  </Box>
+                </Box>
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={{ xs: 1, sm: 2 }} 
+                  justifyContent="center"
+                  sx={{ width: '100%' }}
+                >
                   <Button
                     variant="outlined"
                     onClick={(e) => {
                       e.stopPropagation();
                       resetAnalysis();
                     }}
-                                sx={{ 
-                                  minWidth: 120,
-                                  borderRadius: 2,
-                                }}
+                    sx={{ 
+                      minWidth: { xs: '100%', sm: 120 },
+                      borderRadius: 2,
+                      height: { xs: 44, sm: 40 },
+                    }}
                   >
-                                Remove
+                    Remove
                   </Button>
                   <Button
                     variant="contained"
@@ -403,15 +452,16 @@ const DiseaseClassifier: React.FC = () => {
                       analyzeImage();
                     }}
                     disabled={isAnalyzing}
-                                startIcon={isAnalyzing ? <CircularProgress size={20} /> : <Science />}
-                                sx={{ 
-                                  minWidth: 140,
-                                  borderRadius: 2,
-                                }}
+                    startIcon={isAnalyzing ? <CircularProgress size={20} /> : <Science />}
+                    sx={{ 
+                      minWidth: { xs: '100%', sm: 140 },
+                      borderRadius: 2,
+                      height: { xs: 44, sm: 40 },
+                    }}
                   >
                     {isAnalyzing ? 'Analyzing...' : 'Analyze Image'}
                   </Button>
-                            </Stack>
+                </Stack>
                 </Box>
                         </Zoom>
               ) : (
@@ -419,10 +469,10 @@ const DiseaseClassifier: React.FC = () => {
                           <Box sx={{ 
                             position: 'relative',
                             display: 'inline-block',
-                            mb: 2,
+                            mb: { xs: 1.5, sm: 2 },
                           }}>
                             <CloudUpload sx={{ 
-                              fontSize: 80, 
+                              fontSize: { xs: 60, sm: 80 }, 
                               color: 'primary.main',
                               filter: 'drop-shadow(0px 4px 8px rgba(46, 125, 50, 0.3))',
                             }} />
@@ -432,8 +482,8 @@ const DiseaseClassifier: React.FC = () => {
                               right: -8,
                               background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
                               borderRadius: '50%',
-                              width: 24,
-                              height: 24,
+                              width: { xs: 20, sm: 24 },
+                              height: { xs: 20, sm: 24 },
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -444,15 +494,29 @@ const DiseaseClassifier: React.FC = () => {
                                 '100%': { transform: 'scale(1)' },
                               }
                             }}>
-                              <AutoAwesome sx={{ fontSize: 14, color: 'white' }} />
+                              <AutoAwesome sx={{ fontSize: { xs: 12, sm: 14 }, color: 'white' }} />
                             </Box>
                           </Box>
-                          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    {isDragActive ? 'Drop the image here' : 'Drag & drop an image here'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    or click to select a file
-                  </Typography>
+                          <Typography 
+                            variant="h6" 
+                            gutterBottom 
+                            sx={{ 
+                              fontWeight: 600,
+                              fontSize: { xs: '1rem', sm: '1.25rem' }
+                            }}
+                          >
+                            {isDragActive ? 'Drop the image here' : 'Drag & drop an image here'}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary" 
+                            sx={{ 
+                              mb: { xs: 1.5, sm: 2 },
+                              fontSize: { xs: '0.875rem', sm: '0.9rem' }
+                            }}
+                          >
+                            or click to select a file
+                          </Typography>
                           <Chip 
                             label="Supports: JPG, PNG, GIF (Max 10MB)" 
                             size="small" 
@@ -462,6 +526,8 @@ const DiseaseClassifier: React.FC = () => {
                               borderColor: 'primary.main',
                               color: 'primary.main',
                               fontWeight: 500,
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                              height: { xs: 28, sm: 32 }
                             }}
                           />
                 </Box>
@@ -486,12 +552,12 @@ const DiseaseClassifier: React.FC = () => {
                 <Paper 
                   elevation={0} 
                   sx={{ 
-                    p: 4,
-                    minHeight: 500,
+                    p: { xs: 2, sm: 4 },
+                    minHeight: { xs: 400, sm: 500 },
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
                     backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: 3,
+                    borderRadius: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
                     '&::before': {
@@ -505,27 +571,37 @@ const DiseaseClassifier: React.FC = () => {
                     }
                   }}
                 >
-                  <Box sx={{ textAlign: 'center', mb: 3 }}>
-                    <Typography variant="h5" sx={{ 
-                      fontWeight: 600, 
-                      mb: 1,
-                      color: 'text.primary'
-                    }}>
-              Analysis Results
-            </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                  <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 3 } }}>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        mb: 1,
+                        color: 'text.primary',
+                        fontSize: { xs: '1.25rem', sm: '1.5rem' }
+                      }}
+                    >
+                      Analysis Results
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem' } }}
+                    >
                       AI-powered disease detection and recommendations
                     </Typography>
                   </Box>
             
             {isAnalyzing && (
                     <Fade in timeout={500}>
-                      <Box sx={{ textAlign: 'center', py: 6 }}>
-                        <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
+                      <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 6 } }}>
+                        <Box sx={{ position: 'relative', display: 'inline-block', mb: { xs: 2, sm: 3 } }}>
                           <CircularProgress 
                             size={80} 
                             thickness={4}
                             sx={{ 
+                              width: { xs: 60, sm: 80 },
+                              height: { xs: 60, sm: 80 },
                               color: 'primary.main',
                               filter: 'drop-shadow(0px 4px 8px rgba(46, 125, 50, 0.3))',
                             }} 
@@ -537,21 +613,35 @@ const DiseaseClassifier: React.FC = () => {
                             transform: 'translate(-50%, -50%)',
                             background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
                             borderRadius: '50%',
-                            width: 40,
-                            height: 40,
+                            width: { xs: 30, sm: 40 },
+                            height: { xs: 30, sm: 40 },
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}>
-                            <Science sx={{ color: 'white', fontSize: 20 }} />
+                            <Science sx={{ color: 'white', fontSize: { xs: 16, sm: 20 } }} />
                           </Box>
                         </Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  Analyzing your image...
-                </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Our AI model is examining the cassava leaves for disease symptoms
-                </Typography>
+                        <Typography 
+                          variant="h6" 
+                          gutterBottom 
+                          sx={{ 
+                            fontWeight: 600,
+                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                          }}
+                        >
+                          Analyzing your image...
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          sx={{ 
+                            mb: { xs: 2, sm: 3 },
+                            fontSize: { xs: '0.875rem', sm: '0.9rem' }
+                          }}
+                        >
+                          Our AI model is examining the cassava leaves for disease symptoms
+                        </Typography>
                         <LinearProgress 
                           sx={{ 
                             height: 6, 
@@ -813,12 +903,12 @@ const DiseaseClassifier: React.FC = () => {
             <Paper 
               elevation={0} 
               sx={{ 
-                p: 6, 
-                mt: 6,
+                p: { xs: 3, sm: 6 }, 
+                mt: { xs: 4, sm: 6 },
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 4,
+                borderRadius: { xs: 2, sm: 4 },
                 position: 'relative',
                 overflow: 'hidden',
                 '&::before': {
@@ -832,47 +922,60 @@ const DiseaseClassifier: React.FC = () => {
                 }
               }}
             >
-              <Box sx={{ textAlign: 'center', mb: 5 }}>
-                <Typography variant="h4" sx={{ 
-                  fontWeight: 700, 
-                  mb: 2,
-                  background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}>
-          Tips for Best Results
-        </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+              <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 5 } }}>
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    mb: { xs: 1, sm: 2 },
+                    background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                  }}
+                >
+                  Tips for Best Results
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  color="text.secondary" 
+                  sx={{ 
+                    maxWidth: { xs: '100%', sm: 600 }, 
+                    mx: 'auto',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    px: { xs: 1, sm: 0 }
+                  }}
+                >
                   Follow these guidelines to get the most accurate disease classification results
-            </Typography>
-          </Box>
+                </Typography>
+              </Box>
               
-              <Grid container spacing={4}>
+              <Grid container spacing={{ xs: 2, sm: 4 }}>
                 {[
                   {
-                    icon: <CameraAlt sx={{ fontSize: 48 }} />,
+                    icon: <CameraAlt sx={{ fontSize: { xs: 36, sm: 48 } }} />,
                     title: 'Clear Photos',
                     description: 'Take photos in good lighting with clear focus on the leaves',
                     color: 'primary.main',
                     delay: 0,
                   },
                   {
-                    icon: <Info sx={{ fontSize: 48 }} />,
+                    icon: <Info sx={{ fontSize: { xs: 36, sm: 48 } }} />,
                     title: 'Multiple Angles',
                     description: 'Capture both sides of leaves and any visible symptoms',
                     color: 'info.main',
                     delay: 200,
                   },
                   {
-                    icon: <Warning sx={{ fontSize: 48 }} />,
+                    icon: <Warning sx={{ fontSize: { xs: 36, sm: 48 } }} />,
                     title: 'Early Detection',
                     description: 'Monitor plants regularly and test at first sign of issues',
                     color: 'warning.main',
                     delay: 400,
                   },
                   {
-                    icon: <CheckCircle sx={{ fontSize: 48 }} />,
+                    icon: <CheckCircle sx={{ fontSize: { xs: 36, sm: 48 } }} />,
                     title: 'Follow Advice',
                     description: 'Implement recommendations promptly for best results',
                     color: 'success.main',
@@ -883,15 +986,15 @@ const DiseaseClassifier: React.FC = () => {
                     <Fade in timeout={1600 + tip.delay}>
                       <Box sx={{ 
                         textAlign: 'center',
-                        p: 3,
+                        p: { xs: 2, sm: 3 },
                         height: '100%',
                         background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.8) 100%)',
-                        borderRadius: 3,
+                        borderRadius: { xs: 2, sm: 3 },
                         border: '1px solid rgba(0,0,0,0.05)',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         '&:hover': {
-                          transform: 'translateY(-8px)',
-                          boxShadow: '0px 12px 40px rgba(0,0,0,0.15)',
+                          transform: { xs: 'translateY(-2px)', sm: 'translateY(-8px)' },
+                          boxShadow: { xs: '0px 6px 20px rgba(0,0,0,0.1)', sm: '0px 12px 40px rgba(0,0,0,0.15)' },
                           background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
                         }
                       }}>
@@ -899,11 +1002,11 @@ const DiseaseClassifier: React.FC = () => {
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: 80,
-                          height: 80,
+                          width: { xs: 60, sm: 80 },
+                          height: { xs: 60, sm: 80 },
                           borderRadius: '50%',
                           background: `linear-gradient(135deg, ${tip.color}20 0%, ${tip.color}10 100%)`,
-                          mb: 3,
+                          mb: { xs: 2, sm: 3 },
                           position: 'relative',
                           '&::before': {
                             content: '""',
@@ -924,21 +1027,31 @@ const DiseaseClassifier: React.FC = () => {
                           <Box sx={{ color: tip.color, position: 'relative', zIndex: 1 }}>
                             {tip.icon}
                           </Box>
-          </Box>
-                        <Typography variant="h6" gutterBottom sx={{ 
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          mb: 2,
-                        }}>
+                        </Box>
+                        <Typography 
+                          variant="h6" 
+                          gutterBottom 
+                          sx={{ 
+                            fontWeight: 600,
+                            color: 'text.primary',
+                            mb: { xs: 1, sm: 2 },
+                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                          }}
+                        >
                           {tip.title}
-            </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ 
-                          lineHeight: 1.6,
-                          maxWidth: 200,
-                          mx: 'auto',
-                        }}>
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          sx={{ 
+                            lineHeight: 1.6,
+                            maxWidth: { xs: '100%', sm: 200 },
+                            mx: 'auto',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                          }}
+                        >
                           {tip.description}
-            </Typography>
+                        </Typography>
           </Box>
                     </Fade>
                   </Grid>

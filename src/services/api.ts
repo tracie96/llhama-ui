@@ -40,9 +40,18 @@ export interface DiseaseClassificationResponse {
 }
 
 export interface VoiceProcessResponse {
-  transcription: string;
-  response: string;
-  audio_data?: string; // Base64 encoded audio response
+  success: boolean;
+  user_text: string;
+  english_text: string;
+  ai_response: string;
+  english_response: string;
+  audio_available: boolean;
+  voice_used: string;
+  user_language: string;
+  message: string;
+  audio_data: string; // Base64 encoded audio response
+  transcription?: string; // For backward compatibility
+  response?: string; // For backward compatibility
   language?: string;
   timestamp?: string;
 }

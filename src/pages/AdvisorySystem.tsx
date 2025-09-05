@@ -49,6 +49,7 @@ const AdvisorySystem: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+  const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -211,7 +212,7 @@ const AdvisorySystem: React.FC = () => {
       );
 
       // Add the transcribed text to input
-      setInputText(voiceResponse.transcription);
+      setInputText(voiceResponse.user_text);
 
       // Create audio URL for playback
       const audioUrl = URL.createObjectURL(audioBlob);
@@ -219,7 +220,7 @@ const AdvisorySystem: React.FC = () => {
       // Add user message with audio
       const userMessage: Message = {
         id: Date.now().toString(),
-        text: voiceResponse.transcription,
+        text: voiceResponse.user_text,
         isUser: true,
         timestamp: new Date(),
         audioUrl: audioUrl,
@@ -230,52 +231,50 @@ const AdvisorySystem: React.FC = () => {
       // Add user message to conversation history
       const newUserChatMessage: ChatMessage = {
         role: 'user',
-        content: voiceResponse.transcription,
+        content: voiceResponse.user_text,
       };
       const updatedHistory = [...conversationHistory, newUserChatMessage];
       setConversationHistory(updatedHistory);
 
       // Process AI response
       setIsTyping(true);
-      try {
-        const response = await apiService.getResponseWithContext(
-          voiceResponse.transcription,
-          selectedLanguage
-        );
-
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: response.response,
-          isUser: false,
-          timestamp: new Date(),
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Add AI response to conversation history
-        const newAiChatMessage: ChatMessage = {
-          role: 'assistant',
-          content: response.response,
-        };
-        setConversationHistory(prev => [...prev, newAiChatMessage]);
-
-      } catch (error: unknown) {
-        console.error('Chat API error:', error);
-        
-        // Fallback to mock response if API fails
-        const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: fallbackResponse,
-          isUser: false,
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, aiMessage]);
-        setError('Using offline mode. Some features may be limited.');
-      } finally {
-        setIsTyping(false);
+      
+      // Create AI response audio URL if available
+      let aiAudioUrl: string | undefined;
+      if (voiceResponse.audio_available && voiceResponse.audio_data) {
+        try {
+          // Convert base64 audio to blob and create URL
+          const audioData = atob(voiceResponse.audio_data);
+          const audioArray = new Uint8Array(audioData.length);
+          for (let i = 0; i < audioData.length; i++) {
+            audioArray[i] = audioData.charCodeAt(i);
+          }
+          
+          const audioBlob = new Blob([audioArray], { type: 'audio/wav' });
+          aiAudioUrl = URL.createObjectURL(audioBlob);
+        } catch (audioError) {
+          console.warn('Failed to process AI audio:', audioError);
+        }
       }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: voiceResponse.ai_response,
+        isUser: false,
+        timestamp: new Date(),
+        audioUrl: aiAudioUrl,
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+
+      // Add AI response to conversation history
+      const newAiChatMessage: ChatMessage = {
+        role: 'assistant',
+        content: voiceResponse.ai_response,
+      };
+      setConversationHistory(prev => [...prev, newAiChatMessage]);
+
+      setIsTyping(false);
 
     } catch (error: unknown) {
       console.error('Voice processing error:', error);
@@ -287,7 +286,20 @@ const AdvisorySystem: React.FC = () => {
 
   const playAudio = (messageId: string, audioUrl: string) => {
     if (!audioRefs.current[messageId]) {
-      audioRefs.current[messageId] = new Audio(audioUrl);
+      const audio = new Audio(audioUrl);
+      
+      // Add error handling
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        setError('Failed to play audio. Please try again.');
+        setIsPlayingAudio(null);
+      };
+      
+      audio.onended = () => {
+        setIsPlayingAudio(null);
+      };
+      
+      audioRefs.current[messageId] = audio;
     }
 
     const audio = audioRefs.current[messageId];
@@ -299,19 +311,28 @@ const AdvisorySystem: React.FC = () => {
       // Stop any currently playing audio
       Object.values(audioRefs.current).forEach(a => a.pause());
       setIsPlayingAudio(messageId);
-      audio.play();
       
-      audio.onended = () => {
+      audio.play().catch((error) => {
+        console.error('Audio play error:', error);
+        setError('Failed to play audio. Please try again.');
         setIsPlayingAudio(null);
-      };
+      });
     }
   };
 
   const speakText = async (text: string) => {
     if (!text.trim()) return;
 
+    setIsGeneratingSpeech(true);
+    setError(null);
+
     try {
       const ttsResponse = await apiService.textToSpeech(text, selectedLanguage);
+      
+      if (!ttsResponse.audio_data) {
+        setError('No audio data received from text-to-speech service.');
+        return;
+      }
       
       // Convert base64 audio to blob and play
       const audioData = atob(ttsResponse.audio_data);
@@ -325,11 +346,26 @@ const AdvisorySystem: React.FC = () => {
       
       // Create a temporary audio element and play
       const audio = new Audio(audioUrl);
-      audio.play();
+      
+      // Add error handling for audio playback
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        setError('Failed to play audio. Please try again.');
+        URL.revokeObjectURL(audioUrl); // Clean up the URL
+        setIsGeneratingSpeech(false);
+      };
+      
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl); // Clean up the URL when done
+        setIsGeneratingSpeech(false);
+      };
+      
+      await audio.play();
       
     } catch (error: unknown) {
       console.error('TTS error:', error);
       setError('Failed to generate speech. Please try again.');
+      setIsGeneratingSpeech(false);
     }
   };
 
@@ -491,23 +527,24 @@ const AdvisorySystem: React.FC = () => {
                           <Button
                             size="small"
                             variant="outlined"
-                            startIcon={<VolumeUp />}
+                            startIcon={isGeneratingSpeech ? <CircularProgress size={16} /> : <VolumeUp />}
                             onClick={() => speakText(message.text)}
+                            disabled={isGeneratingSpeech}
                             sx={{ 
                               minWidth: 'auto', 
                               px: { xs: 0.5, sm: 1 },
                               py: { xs: 0.5, sm: 0.5 },
                               fontSize: { xs: '0.7rem', sm: '0.75rem' },
                               minHeight: { xs: 28, sm: 32 },
-                              color: 'primary.main',
-                              borderColor: 'primary.main',
+                              color: isGeneratingSpeech ? 'grey.500' : 'primary.main',
+                              borderColor: isGeneratingSpeech ? 'grey.300' : 'primary.main',
                               '&:hover': {
-                                borderColor: 'primary.main',
-                                backgroundColor: 'primary.50',
+                                borderColor: isGeneratingSpeech ? 'grey.300' : 'primary.main',
+                                backgroundColor: isGeneratingSpeech ? 'transparent' : 'primary.50',
                               }
                             }}
                           >
-                            Speak
+                            {isGeneratingSpeech ? 'Generating...' : 'Speak'}
                           </Button>
                         )}
                       </Box>
@@ -666,6 +703,27 @@ const AdvisorySystem: React.FC = () => {
                   sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                 >
                   Processing voice message...
+                </Typography>
+              </Box>
+            )}
+            
+            {isGeneratingSpeech && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1, 
+                mt: 1, 
+                p: { xs: 0.75, sm: 1 }, 
+                backgroundColor: 'primary.50', 
+                borderRadius: 1 
+              }}>
+                <CircularProgress size={16} />
+                <Typography 
+                  variant="body2" 
+                  color="primary.main"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                >
+                  Generating speech...
                 </Typography>
               </Box>
             )}

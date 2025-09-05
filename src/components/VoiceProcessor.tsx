@@ -73,8 +73,8 @@ const VoiceProcessor: React.FC<VoiceProcessorProps> = ({
         diseaseContext
       );
 
-      setTranscription(voiceResponse.transcription);
-      setResponse(voiceResponse.response);
+      setTranscription(voiceResponse.user_text || voiceResponse.transcription || '');
+      setResponse(voiceResponse.ai_response || voiceResponse.response || '');
 
       // Handle audio response if available
       if (voiceResponse.audio_data) {
@@ -96,10 +96,10 @@ const VoiceProcessor: React.FC<VoiceProcessorProps> = ({
 
       // Call callbacks if provided
       if (onTranscription) {
-        onTranscription(voiceResponse.transcription);
+        onTranscription(voiceResponse.user_text || voiceResponse.transcription || '');
       }
       if (onResponse) {
-        onResponse(voiceResponse.response);
+        onResponse(voiceResponse.ai_response || voiceResponse.response || '');
       }
 
     } catch (error: unknown) {
