@@ -30,7 +30,6 @@ const Header: React.FC = () => {
     { label: 'Home', path: '/' },
     { label: 'Disease Classifier', path: '/classifier' },
     { label: 'Advisory System', path: '/advisory' },
-    { label: 'Voice Assistant', path: '/voice' },
     { label: 'System Health', path: '/health' },
     { label: 'About', path: '/about' },
   ];

@@ -98,7 +98,7 @@ const Home: React.FC = () => {
           <Button
             variant="outlined"
             size="large"
-            onClick={() => navigate('/voice')}
+            onClick={() => navigate('/advisory')}
             sx={{
               borderColor: 'white',
               color: 'white',
