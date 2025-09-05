@@ -8,6 +8,8 @@ import Home from './pages/Home';
 import DiseaseClassifier from './pages/DiseaseClassifier';
 import AdvisorySystem from './pages/AdvisorySystem';
 import About from './pages/About';
+import VoiceAssistant from './pages/VoiceAssistant';
+import SystemStatus from './pages/SystemStatus';
 
 const theme = createTheme({
   palette: {
@@ -46,6 +48,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/classifier" element={<DiseaseClassifier />} />
               <Route path="/advisory" element={<AdvisorySystem />} />
+              <Route path="/voice" element={<VoiceAssistant />} />
+              <Route path="/health" element={<SystemStatus />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </Container>

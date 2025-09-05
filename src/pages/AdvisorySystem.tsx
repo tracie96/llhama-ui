@@ -14,6 +14,11 @@ import {
   ListItemIcon,
   CircularProgress,
   Card,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
 } from '@mui/material';
 import {
   Send,
@@ -25,6 +30,8 @@ import {
   Info,
   Warning,
 } from '@mui/icons-material';
+import { apiService, ChatMessage } from '../services/api';
+import { API_CONFIG } from '../config/api';
 
 interface Message {
   id: string;
@@ -51,6 +58,9 @@ const AdvisorySystem: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
+  const [error, setError] = useState<string | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const advisoryCategories: AdvisoryCategory[] = [
@@ -92,8 +102,8 @@ const AdvisorySystem: React.FC = () => {
     }
   ];
 
-  // Mock responses for demonstration
-  const mockResponses = [
+  // Fallback responses for when API is unavailable
+  const fallbackResponses = [
     "Based on your question about cassava diseases, I recommend implementing regular field monitoring and using certified disease-free planting material. Early detection is crucial for effective management.",
     "For soil fertility, consider incorporating organic matter and practicing crop rotation. Cassava responds well to balanced fertilization, especially with potassium and phosphorus.",
     "When selecting cassava varieties, look for those resistant to common diseases in your area. Local agricultural extension services can provide specific recommendations for your region.",
@@ -120,21 +130,60 @@ const AdvisorySystem: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setError(null);
     setIsTyping(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+    // Add user message to conversation history
+    const newUserChatMessage: ChatMessage = {
+      role: 'user',
+      content: inputText,
+    };
+    const updatedHistory = [...conversationHistory, newUserChatMessage];
+    setConversationHistory(updatedHistory);
+
+    const messageText = inputText;
+    setInputText('');
+
+    try {
+      // Try to use the context endpoint first (simpler)
+      const response = await apiService.getResponseWithContext(
+        messageText,
+        selectedLanguage
+      );
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: randomResponse,
+        text: response.response,
         isUser: false,
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, aiMessage]);
+
+      // Add AI response to conversation history
+      const newAiChatMessage: ChatMessage = {
+        role: 'assistant',
+        content: response.response,
+      };
+      setConversationHistory(prev => [...prev, newAiChatMessage]);
+
+    } catch (error: unknown) {
+      console.error('Chat API error:', error);
+      
+      // Fallback to mock response if API fails
+      const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: fallbackResponse,
+        isUser: false,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      setError('Using offline mode. Some features may be limited.');
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleQuickQuestion = (topic: string) => {
@@ -162,12 +211,32 @@ const AdvisorySystem: React.FC = () => {
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 4 }}>
           {/* Chat Interface */}
           <Paper elevation={3} sx={{ p: 3, height: 600, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <Psychology sx={{ fontSize: 32, color: 'primary.main', mr: 2 }} />
-              <Typography variant="h5">
+              <Typography variant="h5" sx={{ flexGrow: 1 }}>
                 Chat with AI Advisor
               </Typography>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={selectedLanguage}
+                  label="Language"
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                >
+                  {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
+                    <MenuItem key={language} value={language}>
+                      {language}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
+
+            {error && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
             {/* Messages Area */}
             <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>

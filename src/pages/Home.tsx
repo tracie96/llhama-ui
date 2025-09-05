@@ -13,6 +13,7 @@ import {
   Psychology,
   Agriculture,
   TrendingUp,
+  Mic,
 } from '@mui/icons-material';
 
 const Home: React.FC = () => {
@@ -30,12 +31,17 @@ const Home: React.FC = () => {
       description: 'Receive personalized advice and treatment recommendations based on detected diseases.',
     },
     {
-      icon: <Agriculture sx={{ fontSize: 40, color: 'primary.main' }} />,
+      icon: <Mic sx={{ fontSize: 40, color: 'primary.main' }} />,
+      title: 'Voice Assistant',
+      description: 'Ask questions and get responses through voice interaction with multilingual support.',
+    },
+    {
+      icon: <Agriculture sx={{ fontSize: 40, color: 'secondary.main' }} />,
       title: 'Farmer Advisory',
       description: 'Get expert guidance on best practices, resistant varieties, and agronomic techniques.',
     },
     {
-      icon: <TrendingUp sx={{ fontSize: 40, color: 'secondary.main' }} />,
+      icon: <TrendingUp sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Improved Yields',
       description: 'Early disease detection and proper management lead to better crop outcomes and reduced losses.',
     },
@@ -89,6 +95,18 @@ const Home: React.FC = () => {
           >
             Get Expert Advice
           </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => navigate('/voice')}
+            sx={{
+              borderColor: 'white',
+              color: 'white',
+              '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+            }}
+          >
+            Voice Assistant
+          </Button>
         </Box>
       </Paper>
 
@@ -97,7 +115,7 @@ const Home: React.FC = () => {
         Key Features
       </Typography>
       
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 4, mb: 6 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' }, gap: 4, mb: 6 }}>
         {features.map((feature, index) => (
           <Card
             key={index}
