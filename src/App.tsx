@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Container, Box } from '@mui/material';
 import Header from './components/Header';
+import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import DiseaseClassifier from './pages/DiseaseClassifier';
@@ -245,15 +246,53 @@ function App() {
             <Header />
             <Container maxWidth="lg" sx={{ py: 4, pt: { xs: 10, sm: 12 } }}>
               <Routes>
+                {/* Public routes - accessible without authentication */}
                 <Route path="/" element={<Home />} />
-                <Route path="/classifier" element={<DiseaseClassifier />} />
-                <Route path="/advisory" element={<AdvisorySystem />} />
-                <Route path="/voice" element={<VoiceAssistant />} />
-                <Route path="/health" element={<SystemStatus />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/signup" element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/users" element={<Users />} />
+                <Route path="/signup" element={<SignUp />} />
+                
+                {/* Protected routes - require authentication */}
+                <Route 
+                  path="/classifier" 
+                  element={
+                    <ProtectedRoute>
+                      <DiseaseClassifier />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/advisory" 
+                  element={
+                    <ProtectedRoute>
+                      <AdvisorySystem />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/voice" 
+                  element={
+                    <ProtectedRoute>
+                      <VoiceAssistant />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/health" 
+                  element={
+                    <ProtectedRoute>
+                      <SystemStatus />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/users" 
+                  element={
+                    <ProtectedRoute>
+                      <Users />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </Container>
           </Box>

@@ -12,13 +12,14 @@ import {
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { Login as LoginIcon, ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService, LoginRequest } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [formData, setFormData] = useState<LoginRequest>({
     username: '',
@@ -69,8 +70,9 @@ const Login: React.FC = () => {
         // Store the token and update auth context
         login(response.token);
         
-        // Redirect to home page
-        navigate('/');
+        // Redirect to the intended destination or home page
+        const from = location.state?.from?.pathname || '/';
+        navigate(from, { replace: true });
       } else {
         setError(response.message || 'Login failed');
       }

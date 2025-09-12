@@ -37,13 +37,18 @@ const Header: React.FC = () => {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const { isAuthenticated, user, logout } = useAuth();
 
-  const navItems = [
+  const publicNavItems = [
     { label: 'Home', path: '/' },
+    { label: 'About', path: '/about' },
+  ];
+
+  const protectedNavItems = [
     { label: 'Disease Classifier', path: '/classifier' },
     { label: 'Advisory System', path: '/advisory' },
     { label: 'System Health', path: '/health' },
-    { label: 'About', path: '/about' },
   ];
+
+  const navItems = isAuthenticated ? [...publicNavItems, ...protectedNavItems] : publicNavItems;
 
 
   const handleDrawerToggle = () => {
