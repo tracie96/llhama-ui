@@ -1,4 +1,5 @@
 import { getApiConfig } from '../config/api';
+import { authService } from './auth';
 
 // API Configuration
 const config = getApiConfig();
@@ -24,19 +25,27 @@ export interface ChatResponse {
 }
 
 export interface DiseaseClassificationResponse {
-  success: boolean;
-  predicted_class: string;
-  confidence: number;
-  recommendation: string;
-  initial_message?: string;
-  language?: string;
-  message?: string;
+  status: string;
+  message: string;
+  data: {
+    predicted_class: string;
+    confidence: number;
+    recommendation: string;
+    initial_message: string;
+    language: string;
+  };
+  code: number;
   // Legacy fields for backward compatibility
+  success?: boolean;
   disease?: string;
   description?: string;
   symptoms?: string[];
   recommendations?: string[];
   timestamp?: string;
+  // Additional legacy fields for component compatibility
+  predicted_class?: string;
+  confidence?: number;
+  recommendation?: string;
 }
 
 export interface VoiceProcessResponse {
@@ -107,9 +116,15 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
-    const defaultHeaders = {
+    const token = authService.getToken();
+    const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+
+    // Add authorization header if token exists
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
 
     const config: RequestInit = {
       ...options,
@@ -140,9 +155,18 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    const token = authService.getToken();
+    const headers: Record<string, string> = {};
+
+    // Add authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     try {
       const response = await fetch(url, {
         method: 'POST',
+        headers,
         body: formData,
       });
       

@@ -4,12 +4,16 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Container, Box } from '@mui/material';
 import Header from './components/Header';
+import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import DiseaseClassifier from './pages/DiseaseClassifier';
 import AdvisorySystem from './pages/AdvisorySystem';
 import About from './pages/About';
 import VoiceAssistant from './pages/VoiceAssistant';
 import SystemStatus from './pages/SystemStatus';
+import SignUp from './pages/SignUp';
+import Login from './pages/Login';
+import Users from './pages/Users';
 
 const theme = createTheme({
   palette: {
@@ -221,35 +225,40 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Box sx={{ 
-          minHeight: '100vh', 
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 20% 80%, rgba(46, 125, 50, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 152, 0, 0.1) 0%, transparent 50%)',
-            pointerEvents: 'none',
-          }
-        }}>
-          <Header />
-          <Container maxWidth="lg" sx={{ py: 4, pt: { xs: 10, sm: 12 } }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/classifier" element={<DiseaseClassifier />} />
-              <Route path="/advisory" element={<AdvisorySystem />} />
-              <Route path="/voice" element={<VoiceAssistant />} />
-              <Route path="/health" element={<SystemStatus />} />
-              <Route path="/about" element={<About />} />
-            </Routes>
-          </Container>
-        </Box>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Box sx={{ 
+            minHeight: '100vh', 
+            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 20% 80%, rgba(46, 125, 50, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 152, 0, 0.1) 0%, transparent 50%)',
+              pointerEvents: 'none',
+            }
+          }}>
+            <Header />
+            <Container maxWidth="lg" sx={{ py: 4, pt: { xs: 10, sm: 12 } }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/classifier" element={<DiseaseClassifier />} />
+                <Route path="/advisory" element={<AdvisorySystem />} />
+                <Route path="/voice" element={<VoiceAssistant />} />
+                <Route path="/health" element={<SystemStatus />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/users" element={<Users />} />
+              </Routes>
+            </Container>
+          </Box>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

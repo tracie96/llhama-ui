@@ -14,17 +14,28 @@ import {
   ListItemText,
   useMediaQuery,
   useTheme,
+  Menu,
+  MenuItem,
+  Avatar,
+  Divider,
 } from '@mui/material';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Logout from '@mui/icons-material/Logout';
+import People from '@mui/icons-material/People';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const { isAuthenticated, user, logout } = useAuth();
 
   const navItems = [
     { label: 'Home', path: '/' },
@@ -34,8 +45,23 @@ const Header: React.FC = () => {
     { label: 'About', path: '/about' },
   ];
 
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogout = async () => {
+    setUserMenuAnchor(null);
+    await logout();
+    navigate('/');
   };
 
   const drawer = (
@@ -85,6 +111,69 @@ const Header: React.FC = () => {
             </ListItemButton>
           </ListItem>
         ))}
+        
+        {/* Authentication items in mobile drawer */}
+        <Divider sx={{ my: 1 }} />
+        {isAuthenticated ? (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton onClick={handleDrawerToggle}>
+                <ListItemText 
+                  primary={`Welcome, ${user?.username}`}
+                  secondary={user?.email}
+                  sx={{
+                    '& .MuiListItemText-primary': {
+                      fontWeight: 500,
+                      color: 'primary.main',
+                    },
+                    '& .MuiListItemText-secondary': {
+                      fontSize: '0.75rem',
+                    }
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/users"
+                onClick={handleDrawerToggle}
+              >
+                <People sx={{ mr: 2, fontSize: 20 }} />
+                <ListItemText primary="Users" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { handleLogout(); handleDrawerToggle(); }}>
+                <Logout sx={{ mr: 2, fontSize: 20 }} />
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </ListItem>
+          </>
+        ) : (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/login"
+                onClick={handleDrawerToggle}
+              >
+                <AccountCircle sx={{ mr: 2, fontSize: 20 }} />
+                <ListItemText primary="Sign In" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to="/signup"
+                onClick={handleDrawerToggle}
+              >
+                <AccountCircle sx={{ mr: 2, fontSize: 20 }} />
+                <ListItemText primary="Sign Up" />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
       </List>
     </Box>
   );
@@ -140,7 +229,7 @@ const Header: React.FC = () => {
           
           {/* Desktop Navigation */}
           {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
               {navItems.map((item) => (
                 <Button
                   key={item.path}
@@ -164,6 +253,60 @@ const Header: React.FC = () => {
                   {item.label}
                 </Button>
               ))}
+              
+              {/* Authentication buttons for desktop */}
+              {isAuthenticated ? (
+                <>
+               
+                  <IconButton
+                    onClick={handleUserMenuOpen}
+                    sx={{ color: 'inherit', ml: 1 }}
+                  >
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}>
+                      {user?.username?.charAt(0).toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <Button
+                    component={RouterLink}
+                    to="/login"
+                    sx={{
+                      color: 'inherit',
+                      textTransform: 'none',
+                      px: 2,
+                      py: 1,
+                      fontSize: '0.9rem',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                      },
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    component={RouterLink}
+                    to="/signup"
+                    variant="outlined"
+                    sx={{
+                      color: 'inherit',
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      textTransform: 'none',
+                      px: 2,
+                      py: 1,
+                      fontSize: '0.9rem',
+                      ml: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderColor: 'white',
+                      },
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </Box>
           )}
         </Toolbar>
@@ -190,6 +333,47 @@ const Header: React.FC = () => {
       >
         {drawer}
       </Drawer>
+
+      {/* User Menu */}
+      <Menu
+        anchorEl={userMenuAnchor}
+        open={Boolean(userMenuAnchor)}
+        onClose={handleUserMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 200,
+            '& .MuiMenuItem-root': {
+              px: 2,
+              py: 1,
+            },
+          },
+        }}
+      >
+        <MenuItem disabled>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {user?.username}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user?.email}
+            </Typography>
+          </Box>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout}>
+          <Logout sx={{ mr: 2, fontSize: 20 }} />
+          Logout
+        </MenuItem>
+      </Menu>
     </AppBar>
   );
 };

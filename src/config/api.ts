@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for the API - can be overridden by environment variables
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://api.dataverseafrica.org',
+  BASE_URL: process.env.REACT_APP_API_URL || 'https://casava-api.dataverseafrica.org',
   
   // Request timeout in milliseconds
   TIMEOUT: 30000,
@@ -36,7 +36,7 @@ export const getApiConfig = () => {
     ...API_CONFIG,
     // Override base URL for production if needed
     BASE_URL: isProduction 
-      ? (process.env.REACT_APP_API_URL || 'https://api.dataverseafrica.org')
+      ? (process.env.REACT_APP_API_URL || 'https://casava-api.dataverseafrica.org')
       : API_CONFIG.BASE_URL,
     
     // Enable debug logging in development

@@ -15,9 +15,11 @@ import {
   TrendingUp,
   Mic,
 } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const features = [
     {
@@ -77,7 +79,7 @@ const Home: React.FC = () => {
             onClick={() => navigate('/classifier')}
             sx={{
               backgroundColor: 'white',
-              color: 'white',
+              color: 'primary.main',
               '&:hover': { backgroundColor: '#f5f5f5' },
             }}
           >
@@ -95,10 +97,10 @@ const Home: React.FC = () => {
           >
             Get Expert Advice
           </Button>
-          <Button
+          {/* <Button
             variant="outlined"
             size="large"
-            onClick={() => navigate('/advisory')}
+            onClick={() => navigate('/voice')}
             sx={{
               borderColor: 'white',
               color: 'white',
@@ -106,7 +108,21 @@ const Home: React.FC = () => {
             }}
           >
             Voice Assistant
-          </Button>
+          </Button> */}
+          {!isAuthenticated && (
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/signup')}
+              sx={{
+                borderColor: 'white',
+                color: 'white',
+                '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+              }}
+            >
+              Sign Up Now
+            </Button>
+          )}
         </Box>
       </Paper>
 

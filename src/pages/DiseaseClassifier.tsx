@@ -160,13 +160,18 @@ const DiseaseClassifier: React.FC = () => {
     try {
       const response = await apiService.classifyImage(selectedFile, selectedLanguage);
       
-      // Use predicted_class as the disease name, fallback to disease field for backward compatibility
-      const diseaseName = response.predicted_class || response.disease || 'Unknown Disease';
+      // Handle new API response format
+      const diseaseName = response.data?.predicted_class || response.predicted_class || response.disease || 'Unknown Disease';
+      const confidence = response.data?.confidence || response.confidence || 0;
+      const recommendation = response.data?.recommendation || response.recommendation || '';
       
       // Enhance response with fallback data if needed
       const enhancedResponse: DiseaseClassificationResponse = {
         ...response,
-        disease: diseaseName, // Ensure disease field is populated for backward compatibility
+        // Ensure backward compatibility by populating legacy fields
+        disease: diseaseName,
+        confidence: confidence,
+        recommendation: recommendation,
         description: response.description || getFallbackData(diseaseName).description,
         symptoms: response.symptoms || getFallbackData(diseaseName).symptoms,
         recommendations: response.recommendations || getFallbackData(diseaseName).recommendations,
@@ -674,7 +679,7 @@ const DiseaseClassifier: React.FC = () => {
                             left: 0,
                             right: 0,
                             height: 3,
-                            background: `linear-gradient(90deg, ${getConfidenceColor(results.confidence) === 'success' ? '#4caf50' : getConfidenceColor(results.confidence) === 'warning' ? '#ff9800' : '#f44336'} 0%, ${getConfidenceColor(results.confidence) === 'success' ? '#81c784' : getConfidenceColor(results.confidence) === 'warning' ? '#ffb74d' : '#e57373'} 100%)`,
+                            background: `linear-gradient(90deg, ${getConfidenceColor(results.data?.confidence || results.confidence || 0) === 'success' ? '#4caf50' : getConfidenceColor(results.data?.confidence || results.confidence || 0) === 'warning' ? '#ff9800' : '#f44336'} 0%, ${getConfidenceColor(results.data?.confidence || results.confidence || 0) === 'success' ? '#81c784' : getConfidenceColor(results.data?.confidence || results.confidence || 0) === 'warning' ? '#ffb74d' : '#e57373'} 100%)`,
                           }
                         }}>
                           <CardContent sx={{ p: 3 }}>
@@ -685,15 +690,15 @@ const DiseaseClassifier: React.FC = () => {
                                   mb: 0.5,
                                   color: 'text.primary'
                                 }}>
-                                  {results.predicted_class || results.disease}
+                                  {results.data?.predicted_class || results.predicted_class || results.disease}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                   Disease Classification
                       </Typography>
                               </Box>
                       <Chip
-                        label={`${(results.confidence * 100).toFixed(1)}% confidence`}
-                        color={getConfidenceColor(results.confidence) as any}
+                        label={`${((results.data?.confidence || results.confidence || 0) * 100).toFixed(1)}% confidence`}
+                        color={getConfidenceColor(results.data?.confidence || results.confidence || 0) as any}
                                 variant="filled"
                                 sx={{ 
                                   fontWeight: 600,
@@ -707,21 +712,21 @@ const DiseaseClassifier: React.FC = () => {
                     </Typography>
                             
                             {/* Show API recommendation if available and different from fallback */}
-                            {results.recommendation && (
+                            {(results.data?.recommendation || results.recommendation) && (
                               <Alert 
-                                severity={results.confidence < 0.7 ? "warning" : "info"} 
+                                severity={(results.data?.confidence || results.confidence || 0) < 0.7 ? "warning" : "info"} 
                                 sx={{ 
                                   mt: 2,
                                   borderRadius: 2,
                                   border: 'none',
-                                  background: results.confidence < 0.7 
+                                  background: (results.data?.confidence || results.confidence || 0) < 0.7 
                                     ? 'linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 183, 77, 0.1) 100%)'
                                     : 'linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(100, 181, 246, 0.1) 100%)',
                                 }}
-                                icon={results.confidence < 0.7 ? <Warning /> : <Info />}
+                                icon={(results.data?.confidence || results.confidence || 0) < 0.7 ? <Warning /> : <Info />}
                               >
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {results.recommendation}
+                                  {results.data?.recommendation || results.recommendation}
                                 </Typography>
                               </Alert>
                             )}
@@ -729,7 +734,7 @@ const DiseaseClassifier: React.FC = () => {
                 </Card>
 
                         {/* Only show detailed symptoms and recommendations if confidence is high enough */}
-                        {results.confidence >= 0.7 ? (
+                        {(results.data?.confidence || results.confidence || 0) >= 0.7 ? (
                           <Zoom in timeout={1000}>
                             <Box>
                               <Typography variant="h6" gutterBottom sx={{ 
