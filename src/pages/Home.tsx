@@ -79,7 +79,9 @@ const Home: React.FC = () => {
             onClick={() => navigate('/classifier')}
             sx={{
               backgroundColor: 'white',
-              color: 'primary.main',
+              borderColor: 'white',
+              borderWidth: 2,
+              color: 'white',
               '&:hover': { backgroundColor: '#f5f5f5' },
             }}
           >

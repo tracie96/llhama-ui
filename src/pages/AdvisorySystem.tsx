@@ -7,6 +7,10 @@ import {
   Button,
   CircularProgress,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Send,
@@ -16,7 +20,6 @@ import {
   Info,
   Mic,
   Stop,
-  VolumeUp,
   PlayArrow,
   Pause,
 } from '@mui/icons-material';
@@ -43,13 +46,12 @@ const AdvisorySystem: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
   const [error, setError] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
-  const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -320,54 +322,6 @@ const AdvisorySystem: React.FC = () => {
     }
   };
 
-  const speakText = async (text: string) => {
-    if (!text.trim()) return;
-
-    setIsGeneratingSpeech(true);
-    setError(null);
-
-    try {
-      const ttsResponse = await apiService.textToSpeech(text, selectedLanguage);
-      
-      if (!ttsResponse.audio_data) {
-        setError('No audio data received from text-to-speech service.');
-        return;
-      }
-      
-      // Convert base64 audio to blob and play
-      const audioData = atob(ttsResponse.audio_data);
-      const audioArray = new Uint8Array(audioData.length);
-      for (let i = 0; i < audioData.length; i++) {
-        audioArray[i] = audioData.charCodeAt(i);
-      }
-      
-      const audioBlob = new Blob([audioArray], { type: 'audio/wav' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      // Create a temporary audio element and play
-      const audio = new Audio(audioUrl);
-      
-      // Add error handling for audio playback
-      audio.onerror = (e) => {
-        console.error('Audio playback error:', e);
-        setError('Failed to play audio. Please try again.');
-        URL.revokeObjectURL(audioUrl); // Clean up the URL
-        setIsGeneratingSpeech(false);
-      };
-      
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl); // Clean up the URL when done
-        setIsGeneratingSpeech(false);
-      };
-      
-      await audio.play();
-      
-    } catch (error: unknown) {
-      console.error('TTS error:', error);
-      setError('Failed to generate speech. Please try again.');
-      setIsGeneratingSpeech(false);
-    }
-  };
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -430,6 +384,27 @@ const AdvisorySystem: React.FC = () => {
               >
                 Chat with AI Advisor
               </Typography>
+              
+              {/* Language Selection */}
+              <FormControl sx={{ minWidth: 120, ml: 2 }}>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={selectedLanguage}
+                  label="Language"
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    }
+                  }}
+                >
+                  {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
+                    <MenuItem key={language} value={language}>
+                      {language}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
 
             {error && (
@@ -523,30 +498,7 @@ const AdvisorySystem: React.FC = () => {
                             {isPlayingAudio === message.id ? 'Pause' : 'Play'}
                           </Button>
                         )}
-                        {/* {!message.isUser && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={isGeneratingSpeech ? <CircularProgress size={16} /> : <VolumeUp />}
-                            onClick={() => speakText(message.text)}
-                            disabled={isGeneratingSpeech}
-                            sx={{ 
-                              minWidth: 'auto', 
-                              px: { xs: 0.5, sm: 1 },
-                              py: { xs: 0.5, sm: 0.5 },
-                              fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                              minHeight: { xs: 28, sm: 32 },
-                              color: isGeneratingSpeech ? 'grey.500' : 'primary.main',
-                              borderColor: isGeneratingSpeech ? 'grey.300' : 'primary.main',
-                              '&:hover': {
-                                borderColor: isGeneratingSpeech ? 'grey.300' : 'primary.main',
-                                backgroundColor: isGeneratingSpeech ? 'transparent' : 'primary.50',
-                              }
-                            }}
-                          >
-                            {isGeneratingSpeech ? 'Generating...' : 'Speak'}
-                          </Button>
-                        )} */}
+                        {/* TTS functionality commented out for now */}
                       </Box>
                     </Box>
                   </Box>
@@ -703,27 +655,6 @@ const AdvisorySystem: React.FC = () => {
                   sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                 >
                   Processing voice message...
-                </Typography>
-              </Box>
-            )}
-            
-            {isGeneratingSpeech && (
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1, 
-                mt: 1, 
-                p: { xs: 0.75, sm: 1 }, 
-                backgroundColor: 'primary.50', 
-                borderRadius: 1 
-              }}>
-                <CircularProgress size={16} />
-                <Typography 
-                  variant="body2" 
-                  color="primary.main"
-                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                >
-                  Generating speech...
                 </Typography>
               </Box>
             )}

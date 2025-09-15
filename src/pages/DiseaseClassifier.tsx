@@ -10,10 +10,6 @@ import {
   CircularProgress,
   Alert,
   Divider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Fade,
   Slide,
   Zoom,
@@ -21,6 +17,10 @@ import {
   Grid,
   Stack,
   LinearProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import {
@@ -73,14 +73,25 @@ const DiseaseClassifier: React.FC = () => {
         ]
       },
       'Cassava Bacterial Blight (CBB)': {
-        description: 'A bacterial disease that causes wilting and cankers on stems and leaves.',
-        symptoms: ['Water-soaked leaf spots', 'Stem cankers', 'Wilting', 'Dieback'],
+        description: 'A devastating bacterial disease caused by Xanthomonas axonopodis pv. manihotis that thrives in humid environments and can cause significant yield losses.',
+        symptoms: [
+          'Water-soaked angular lesions on leaf margins',
+          'Yellowing (chlorosis) around lesions',
+          'Wilting of leaves, especially during hot hours',
+          'Leaf drop in severe cases',
+          'Gum exudates (sticky, amber-colored) on stems',
+          'Vascular streaking inside stems',
+          'Apical dieback (death of growing tips)'
+        ],
         recommendations: [
-          'Remove infected plant parts',
-          'Avoid overhead irrigation',
-          'Use disease-free planting material',
-          'Apply copper-based fungicides',
-          'Practice field sanitation'
+          'Use certified disease-free cuttings and resistant varieties',
+          'Maintain field hygiene: disinfect tools, ensure good drainage and avoid waterlogging',
+          'Practice crop rotation with non-hosts like maize or legumes',
+          'Implement fallowing to allow fields to recover between cycles',
+          'Remove infected plants early (roguing)',
+          'Avoid overhead irrigation to reduce humidity',
+          'Apply copper-based bactericides as preventive measure',
+          'Practice strict field sanitation and debris removal'
         ]
       },
       'Cassava Blight': {
@@ -337,28 +348,28 @@ const DiseaseClassifier: React.FC = () => {
                         Get instant AI-powered disease analysis
                       </Typography>
                     </Box>
-            
-            {/* Language Selection */}
+
+                    {/* Language Selection */}
                     <FormControl fullWidth>
-              <InputLabel>Language</InputLabel>
-              <Select
-                value={selectedLanguage}
-                label="Language"
-                onChange={(e) => setSelectedLanguage(e.target.value)}
+                      <InputLabel>Language</InputLabel>
+                      <Select
+                        value={selectedLanguage}
+                        label="Language"
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
                           }
                         }}
-              >
-                {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
-                  <MenuItem key={language} value={language}>
-                    {language}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
+                      >
+                        {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
+                          <MenuItem key={language} value={language}>
+                            {language}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+     
             <Box
               {...getRootProps()}
               sx={{
