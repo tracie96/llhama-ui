@@ -46,6 +46,7 @@ export interface DiseaseClassificationResponse {
   predicted_class?: string;
   confidence?: number;
   recommendation?: string;
+  initial_message?: string;
 }
 
 export interface VoiceProcessResponse {

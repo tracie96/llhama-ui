@@ -16,11 +16,7 @@ import {
   Container,
   Grid,
   Stack,
-  LinearProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  LinearProgress
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import {
@@ -45,7 +41,6 @@ const DiseaseClassifier: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState<DiseaseClassificationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(API_CONFIG.DEFAULT_LANGUAGE);
 
   // Fallback data for when API doesn't provide complete information
   const getFallbackData = (disease: string) => {
@@ -169,7 +164,7 @@ const DiseaseClassifier: React.FC = () => {
     setError(null);
     
     try {
-      const response = await apiService.classifyImage(selectedFile, selectedLanguage);
+      const response = await apiService.classifyImage(selectedFile);
       
       // Handle new API response format
       const diseaseName = response.data?.predicted_class || response.predicted_class || response.disease || 'Unknown Disease';
@@ -183,7 +178,7 @@ const DiseaseClassifier: React.FC = () => {
         disease: diseaseName,
         confidence: confidence,
         recommendation: recommendation,
-        description: response.description || getFallbackData(diseaseName).description,
+        description: response.data?.initial_message || response?.initial_message || getFallbackData(diseaseName).description,
         symptoms: response.symptoms || getFallbackData(diseaseName).symptoms,
         recommendations: response.recommendations || getFallbackData(diseaseName).recommendations,
       };
@@ -350,25 +345,7 @@ const DiseaseClassifier: React.FC = () => {
                     </Box>
 
                     {/* Language Selection */}
-                    <FormControl fullWidth>
-                      <InputLabel>Language</InputLabel>
-                      <Select
-                        value={selectedLanguage}
-                        label="Language"
-                        onChange={(e) => setSelectedLanguage(e.target.value)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                          }
-                        }}
-                      >
-                        {API_CONFIG.SUPPORTED_LANGUAGES.map((language) => (
-                          <MenuItem key={language} value={language}>
-                            {language}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+             
      
             <Box
               {...getRootProps()}
